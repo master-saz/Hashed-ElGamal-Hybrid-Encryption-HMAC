@@ -148,5 +148,5 @@ def param_key_gen(name="alice"):
 
 if __name__ == '__main__':
     #param_key_gen()
-    encryption("test", "test for the teacher")
+    #encryption("test", "test for the teacher")
     decryption("test_c.pem", "test")
