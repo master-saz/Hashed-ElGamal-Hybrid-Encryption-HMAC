@@ -141,7 +141,7 @@ def param_key_gen(name="alice"):
 
     # If it is not generated, it creates it
     if not os.path.isfile("param.pem"):
-        os.system("openssl genpkey -genparam -algorithm dh -pkeyopt dh_rfc5114:3 -out param.pem") #TODO might be dhx instead of dh
+        os.system("openssl genpkey -genparam -algorithm dhx -pkeyopt dh_rfc5114:3 -out param.pem") #TODO might be dhx instead of dh
 
     os.system(f"openssl genpkey -paramfile param.pem -out {name}_pkey.pem") # Generate the long-term keypair
     os.system(f"openssl pkey -in {name}_pkey.pem -pubout -out {name}_pubkey.pem") # Extract the long-term public key
