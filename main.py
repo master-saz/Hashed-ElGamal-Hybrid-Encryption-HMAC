@@ -26,6 +26,8 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
     for i in file_content:
         if "PUBLIC KEY" in i:
             flag = "pubk"
+            public_key+=i
+            public_key+="\n"
             continue # skip to next iteration
         elif " IV" in i:
             flag = "iv"
@@ -39,6 +41,7 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
 
         if flag == "pubk":
             public_key+=i
+            public_key+="\n"
 
         elif flag == "iv":
             iv+=i
