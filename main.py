@@ -174,6 +174,6 @@ if __name__ == '__main__':
     else:
         param_key_gen(name)
         encryption(name, message)
-        decryption(cipher_file, dest_name)
         os.system("rm eph* iv.bin common_secret.bin tag.bin k1.bin k2.bin ciphertext.bin")
+        decryption(cipher_file, dest_name)
         os.system("rm iv.bin common_secret.bin tag.bin k1.bin k2.bin ciphertext.bin ephpubkey.pem decrypted_tag.bin")
