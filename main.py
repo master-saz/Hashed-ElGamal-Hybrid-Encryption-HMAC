@@ -17,46 +17,63 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
         print(f"{cipher_file} does not exist")
         sys.exit(1)
 
-    pub_key_i = file_content.find("-----END PUBLIC KEY-----")
-    #pub_key = file_content[:pub_key_i + 24]
-
     file_content = file_content.split('\n')
-    sys.exit(0)
-    os.system("echo -n \"" + pub_key + "\" > ephpub.pem")
+    public_key = ""
+    iv = ""
+    ciphertext = ""
+    tag = ""
+    flag = ""
+    for i in file_content:
+        if "PUBLIC KEY" in i:
+            flag = "pubk"
+            continue # skip to next iteration
+        elif " IV" in i:
+            flag = "iv"
+            continue
+        elif " CIPHERTEXT" in i:
+            flag = "CIPHERTEXT"
+            continue
+        elif " TAG" in i:
+            flag = "tag"
+            continue
 
-    # IV
-    iv_i = file_content.find("-----END AES-128-CBC IV-----")
-    iv = file_content[pub_key_i + 56:iv_i]
-    os.system("echo -n \"" + iv + "\" | openssl base64 -d -out iv.bin")
+        if flag == "pubk":
+            public_key+=i
 
-    # CIPHERTEXT
-    cipher_i = file_content.find("-----END AES-128-CBC CIPHERTEXT-----")
-    cipher = file_content[iv_i + 68:cipher_i]
-    os.system("echo -n \"" + cipher + "\" | openssl base64 -d -out ciphertext.bin")
+        elif flag == "iv":
+            iv+=i
 
-    # TAG
-    tag_i = file_content.find("-----END SHA256-HMAC TAG-----")
-    tag = file_content[cipher_i + 69:tag_i]
-    os.system("echo -n \"" + tag + "\" | openssl base64 -d -out tag.bin")
+        elif flag == "CIPHERTEXT":
+            ciphertext+=i
 
-    # Generating common key
-    os.system("openssl pkeyutl -inkey " + sys.argv[2] + "_pkey.pem -peerkey ephpub.pem -derive -out common.bin")
+        elif flag == "tag":
+            tag+=i
 
-    # Extracting Key1 & Key2
-    os.system("cat common.bin | openssl dgst -sha256 -binary | head -c 16 > k1.bin")
-    os.system("cat common.bin | openssl dgst -sha256 -binary | tail -c 16 > k2.bin")
+    """print(public_key)
+    print(iv)
+    print(ciphertext)
+    print(tag)"""
+    os.system(f"echo -n \"{public_key}\" > ephpub.pem")
+    os.system(f"echo -n \"{iv}\" | openssl base64 -d -out iv.bin")
+    os.system(f"echo -n \"{ciphertext}\" | openssl base64 -d -out ciphertext.bin")
+    os.system(f"echo -n \"{tag}\" | openssl base64 -d -out tag.bin")
 
-    # Generating the tag
-    os.system(
-        "cat iv.bin ciphertext.bin | openssl dgst -sha256 -mac hmac -macopt hexkey:`cat k2.bin | xxd -p` -binary > deciphered_tag.bin")
+    """Use files alice_pkey.pem and ephpubkey.pem to recover the common secret with openssl pkeyutl
+    -derive."""
+    os.system(f"openssl pkeyutl -inkey {dest_name}_pkey.pem -peerkey ephpub.pem -derive -out common_secret.bin")
 
-    # Checking the tag
+    os.system("cat common_secret.bin | openssl dgst -sha256 -binary | head -c 16 > k1.bin")
+    os.system("cat common_secret.bin | openssl dgst -sha256 -binary | tail -c 16 > k2.bin")
+
+    os.system("cat iv.bin ciphertext.bin | openssl dgst -sha256 -mac hmac -macopt hexkey:`cat k2.bin | xxd -p` -binary > deciphered_tag.bin")
+
+    """ If the result is different from the file tag.bin, then abort the decryption operation and
+    report the error."""
     if os.popen("cat tag.bin | openssl base64").read() == os.popen("cat deciphered_tag.bin | openssl base64").read():
         # Decrypting the message
-        os.system(
-            "openssl enc -aes-128-cbc -d -in ciphertext.bin -iv `cat iv.bin | xxd -p` -K `cat k1.bin | xxd -p` -out deciphered.txt")
+        os.system("openssl enc -aes-128-cbc -d -in ciphertext.bin -iv `cat iv.bin | xxd -p` -K `cat k1.bin | xxd -p` -out deciphered.txt")
     else:
-        print("*** ERROR: Wrong TAG. Please specify the correct receiver. ***")
+        print("Tags do not match, use the correct destination name")
 
     # Cleaning the aux files
     os.system("rm iv.bin ciphertext.bin ephpub.pem tag.bin k1.bin k2.bin common.bin deciphered_tag.bin")
@@ -124,7 +141,7 @@ def param_key_gen(name="alice"):
 
     # If it is not generated, it creates it
     if not os.path.isfile("param.pem"):
-        os.system("openssl genpkey -genparam -algorithm dh -pkeyopt dh_rfc5114:3 -out param.pem")
+        os.system("openssl genpkey -genparam -algorithm dh -pkeyopt dh_rfc5114:3 -out param.pem") #TODO might be dhx instead of dh
 
     os.system(f"openssl genpkey -paramfile param.pem -out {name}_pkey.pem") # Generate the long-term keypair
     os.system(f"openssl pkey -in {name}_pkey.pem -pubout -out {name}_pubkey.pem") # Extract the long-term public key
