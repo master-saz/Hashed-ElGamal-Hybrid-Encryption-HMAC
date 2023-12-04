@@ -1,6 +1,6 @@
 import os
 import sys
-import re
+import argparse
 
 
 def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
@@ -146,7 +146,34 @@ def param_key_gen(name="alice"):
     os.system(f"openssl pkey -in {name}_pkey.pem -pubout -out {name}_pubkey.pem") # Extract the long-term public key
 
 
+def get_params():
+
+    # Initialize parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--encrypt", default="", help="Only call encrypt function. ex: -e yes")
+    parser.add_argument("-d", "--decrypt", default="", help="Only call decrypt function. ex: -d yes")
+
+    parser.add_argument("-n", "--name", default="alice", help="Name of keys used for encription. Only title ex: alice_pkey.pem requires the -n to be just 'alice'")
+    parser.add_argument("-m", "--message", default="This is a test", help="message to encrypt")
+    parser.add_argument("-f", "--cipher_file", default="ciphertext.pem", help="ciphertext.pem file to interpret during decryption")
+    parser.add_argument("-dn", "--dest_name", default="alice", help="destination name to use during decryption. ex: alice_pkey.pem requires the -dn to be just 'alice'")
+    # Read arguments from command line
+    args = parser.parse_args()
+
+    return args.encrypt, args.decrypt, args.name, args.message, args.cipher_file, args.dest_name
+
+
 if __name__ == '__main__':
-    param_key_gen()
-    encryption("test", "test for the teacher")
-    decryption("test_c.pem", "test")
+    encrypt, decrypt, name, message, cipher_file, dest_name = get_params()
+
+    if encrypt != "":
+        encryption(name, message)
+    elif decrypt != "":
+        decryption(cipher_file, dest_name)
+    else:
+        param_key_gen()
+        encryption(name, message)
+        decryption(cipher_file, dest_name)
+
+    """encryption("test", "test for the teacher")
+        decryption("test_c.pem", "test")"""
