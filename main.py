@@ -52,10 +52,10 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
         elif flag == "tag":
             tag+=i
 
-    """print(public_key)
+    print(public_key)
     print(iv)
     print(ciphertext)
-    print(tag)"""
+    print(tag)
     os.system(f"echo -n \"{public_key}\" > ephpubkey.pem")
     os.system(f"echo -n \"{iv}\" | openssl base64 -d -out iv.bin")
     os.system(f"echo -n \"{ciphertext}\" | openssl base64 -d -out ciphertext.bin")
