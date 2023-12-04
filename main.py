@@ -167,7 +167,6 @@ if __name__ == '__main__':
         os.system("rm eph* iv.bin common_secret.bin tag.bin k1.bin k2.bin ciphertext.bin")
     elif decrypt != "":
         decryption(cipher_file, dest_name)
-        # remove temp files
         os.system("rm iv.bin common_secret.bin tag.bin k1.bin k2.bin ciphertext.bin ephpubkey.pem decrypted_tag.bin")
     elif gen_key != "":
         param_key_gen(name)
