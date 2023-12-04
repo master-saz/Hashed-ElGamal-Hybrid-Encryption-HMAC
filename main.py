@@ -5,9 +5,9 @@ import re
 
 def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
 
-    """if not os.path.isfile(f"{dest_name}_pkey.pem"):
+    if not os.path.isfile(f"{dest_name}_pkey.pem"):
         print(f"{dest_name}_pkey.pem does not exist")
-        sys.exit(1)"""
+        sys.exit(1)
 
     try:
         f = open(cipher_file, "r")
@@ -70,10 +70,10 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
     """ If the result is different from the file tag.bin, then abort the decryption operation and
     report the error."""
     if os.popen("cat tag.bin | openssl base64").read() == os.popen("cat deciphered_tag.bin | openssl base64").read():
-        # Decrypting the message
         os.system("openssl enc -aes-128-cbc -d -in ciphertext.bin -iv `cat iv.bin | xxd -p` -K `cat k1.bin | xxd -p` -out deciphered.txt")
     else:
         print("Tags do not match, use the correct destination name")
+        sys.exit(1)
 
     """# Cleaning the aux files
     os.system("rm iv.bin ciphertext.bin ephpub.pem tag.bin k1.bin k2.bin common.bin deciphered_tag.bin")"""
