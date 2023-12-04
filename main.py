@@ -1,5 +1,65 @@
 import os
 import sys
+import re
+
+
+def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
+
+    """if not os.path.isfile(f"{dest_name}_pkey.pem"):
+        print(f"{dest_name}_pkey.pem does not exist")
+        sys.exit(1)"""
+
+    try:
+        f = open(cipher_file, "r")
+        file_content = f.read()
+        f.close()
+    except:
+        print(f"{cipher_file} does not exist")
+        sys.exit(1)
+
+    pub_key_i = file_content.find("-----END PUBLIC KEY-----")
+    #pub_key = file_content[:pub_key_i + 24]
+
+    file_content = file_content.split('\n')
+    sys.exit(0)
+    os.system("echo -n \"" + pub_key + "\" > ephpub.pem")
+
+    # IV
+    iv_i = file_content.find("-----END AES-128-CBC IV-----")
+    iv = file_content[pub_key_i + 56:iv_i]
+    os.system("echo -n \"" + iv + "\" | openssl base64 -d -out iv.bin")
+
+    # CIPHERTEXT
+    cipher_i = file_content.find("-----END AES-128-CBC CIPHERTEXT-----")
+    cipher = file_content[iv_i + 68:cipher_i]
+    os.system("echo -n \"" + cipher + "\" | openssl base64 -d -out ciphertext.bin")
+
+    # TAG
+    tag_i = file_content.find("-----END SHA256-HMAC TAG-----")
+    tag = file_content[cipher_i + 69:tag_i]
+    os.system("echo -n \"" + tag + "\" | openssl base64 -d -out tag.bin")
+
+    # Generating common key
+    os.system("openssl pkeyutl -inkey " + sys.argv[2] + "_pkey.pem -peerkey ephpub.pem -derive -out common.bin")
+
+    # Extracting Key1 & Key2
+    os.system("cat common.bin | openssl dgst -sha256 -binary | head -c 16 > k1.bin")
+    os.system("cat common.bin | openssl dgst -sha256 -binary | tail -c 16 > k2.bin")
+
+    # Generating the tag
+    os.system(
+        "cat iv.bin ciphertext.bin | openssl dgst -sha256 -mac hmac -macopt hexkey:`cat k2.bin | xxd -p` -binary > deciphered_tag.bin")
+
+    # Checking the tag
+    if os.popen("cat tag.bin | openssl base64").read() == os.popen("cat deciphered_tag.bin | openssl base64").read():
+        # Decrypting the message
+        os.system(
+            "openssl enc -aes-128-cbc -d -in ciphertext.bin -iv `cat iv.bin | xxd -p` -K `cat k1.bin | xxd -p` -out deciphered.txt")
+    else:
+        print("*** ERROR: Wrong TAG. Please specify the correct receiver. ***")
+
+    # Cleaning the aux files
+    os.system("rm iv.bin ciphertext.bin ephpub.pem tag.bin k1.bin k2.bin common.bin deciphered_tag.bin")
 
 
 def encryption(name="alice", msg="This is a test"):
@@ -41,7 +101,10 @@ def encryption(name="alice", msg="This is a test"):
     in the previous practical work)."""
     os.system("cat iv.bin ciphertext.bin | openssl dgst -sha256 -mac hmac -macopt hexkey:`cat k2.bin | xxd -p` -binary > tag.bin")
 
-    # Generating the ciphertext.pem file, with the ephimeral public key, the iv, the ciphertext and the tag
+    """Ideally, a single file in PEM or DER format joining the four would be a better option. You can do that
+    by concatenating the printable (base64 encoded) files with adequate headers and footers. For instance, you
+    can start from the file ephpubkey.pem that already is in PEM format, then concatenate it with the base64
+    encoding of ciphertext.bin , iv.bin and tag.bin with some PEM style headers and footers added:"""
     os.system("cat ephpubkey.pem > ciphertext.pem")
     os.system("echo \"-----BEGIN AES-128-CBC IV-----\" >> ciphertext.pem")
     os.system("cat iv.bin | openssl base64 >> ciphertext.pem")
@@ -53,8 +116,8 @@ def encryption(name="alice", msg="This is a test"):
     os.system("cat tag.bin | openssl base64 >> ciphertext.pem")
     os.system("echo \"-----END SHA256-HMAC TAG-----\" >> ciphertext.pem")
 
-    # Cleaning the aux files
-    os.system("rm iv.bin eph_* ciphertext.bin tag.bin k1.bin k2.bin common.bin")
+    # remove the temporary files
+    os.system("rm iv.bin eph* ciphertext.bin tag.bin k1.bin k2.bin common_secret.bin")
 
 
 def param_key_gen(name="alice"):
@@ -68,5 +131,6 @@ def param_key_gen(name="alice"):
 
 
 if __name__ == '__main__':
-    param_key_gen()
-    encryption()
+    #param_key_gen()
+    #encryption()
+    decryption()
