@@ -74,9 +74,6 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
         print("Tags do not match, use the correct destination name")
         sys.exit(1)
 
-    # remove temp files
-    os.system("rm iv.bin ciphertext.bin ephpubkey.pem tag.bin k1.bin k2.bin common_secret.bin decrypted_tag.bin")
-
 
 def encryption(name="alice", msg="This is a test"):
 
@@ -88,8 +85,8 @@ def encryption(name="alice", msg="This is a test"):
         print(f"{name}_pubkey.pem does not exist")
         sys.exit(1)
 
-    os.system("openssl genpkey -paramfile param.pem -out ephpkey.pem") # Compute an ephemeral Diffie-Hellman keypair
-    os.system("openssl pkey -in ephpkey.pem -pubout -out  ephpubkey.pem") # Generate the corresponding ephemeral public key file
+    os.system("openssl genpkey -paramfile param.pem -out ephpkey.pem")
+    os.system("openssl pkey -in ephpkey.pem -pubout -out  ephpubkey.pem")
 
     """Derive a common secret from the secret ephemeral key r, contained in ephpkey.pem, and the long-term
     public key of the recipient, contained in alice_pubkey.pem, with openssl pkeyutl with the -derive
@@ -132,9 +129,6 @@ def encryption(name="alice", msg="This is a test"):
     os.system("cat tag.bin | openssl base64 >> ciphertext.pem")
     os.system("echo \"-----END SHA256-HMAC TAG-----\" >> ciphertext.pem")
 
-    # remove the temporary files
-    os.system("rm iv.bin eph* ciphertext.bin tag.bin k1.bin k2.bin common_secret.bin")
-
 
 def param_key_gen(name="alice"):
 
@@ -142,8 +136,8 @@ def param_key_gen(name="alice"):
     if not os.path.isfile("param.pem"):
         os.system("openssl genpkey -genparam -algorithm dhx -pkeyopt dh_rfc5114:3 -out param.pem") #TODO might be dhx instead of dh
 
-    os.system(f"openssl genpkey -paramfile param.pem -out {name}_pkey.pem") # Generate the long-term keypair
-    os.system(f"openssl pkey -in {name}_pkey.pem -pubout -out {name}_pubkey.pem") # Extract the long-term public key
+    os.system(f"openssl genpkey -paramfile param.pem -out {name}_pkey.pem")  # Generate the long term key pair
+    os.system(f"openssl pkey -in {name}_pkey.pem -pubout -out {name}_pubkey.pem")  # Extract the long term public key from the private key
 
 
 def get_params():
@@ -169,14 +163,17 @@ if __name__ == '__main__':
 
     if encrypt != "":
         encryption(name, message)
+        # remove the temporary files
+        os.system("rm eph* iv.bin common_secret.bin tag.bin k1.bin k2.bin ciphertext.bin")
     elif decrypt != "":
         decryption(cipher_file, dest_name)
+        # remove temp files
+        os.system("rm iv.bin common_secret.bin tag.bin k1.bin k2.bin ciphertext.bin ephpubkey.pem decrypted_tag.bin")
     elif gen_key != "":
         param_key_gen(name)
     else:
         param_key_gen(name)
         encryption(name, message)
         decryption(cipher_file, dest_name)
-
-    """encryption("test", "test for the teacher")
-        decryption("test_c.pem", "test")"""
+        os.system("rm eph* iv.bin common_secret.bin tag.bin k1.bin k2.bin ciphertext.bin")
+        os.system("rm iv.bin common_secret.bin tag.bin k1.bin k2.bin ciphertext.bin ephpubkey.pem decrypted_tag.bin")
