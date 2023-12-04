@@ -150,6 +150,7 @@ def get_params():
 
     # Initialize parser
     parser = argparse.ArgumentParser()
+    parser.add_argument("-g", "--gen_key", default="", help="Only call gen_key function. You should pass the --name param too. ex: -g yes")
     parser.add_argument("-e", "--encrypt", default="", help="Only call encrypt function. ex: -e yes")
     parser.add_argument("-d", "--decrypt", default="", help="Only call decrypt function. ex: -d yes")
 
@@ -160,18 +161,20 @@ def get_params():
     # Read arguments from command line
     args = parser.parse_args()
 
-    return args.encrypt, args.decrypt, args.name, args.message, args.cipher_file, args.dest_name
+    return args.gen_key, args.encrypt, args.decrypt, args.name, args.message, args.cipher_file, args.dest_name
 
 
 if __name__ == '__main__':
-    encrypt, decrypt, name, message, cipher_file, dest_name = get_params()
+    gen_key, encrypt, decrypt, name, message, cipher_file, dest_name = get_params()
 
     if encrypt != "":
         encryption(name, message)
     elif decrypt != "":
         decryption(cipher_file, dest_name)
+    elif gen_key != "":
+        param_key_gen(name)
     else:
-        param_key_gen()
+        param_key_gen(name)
         encryption(name, message)
         decryption(cipher_file, dest_name)
 
