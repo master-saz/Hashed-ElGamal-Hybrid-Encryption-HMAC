@@ -53,14 +53,14 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
     print(iv)
     print(ciphertext)
     print(tag)"""
-    os.system(f"echo -n \"{public_key}\" > ephpub.pem")
+    os.system(f"echo -n \"{public_key}\" > ephpubkey.pem")
     os.system(f"echo -n \"{iv}\" | openssl base64 -d -out iv.bin")
     os.system(f"echo -n \"{ciphertext}\" | openssl base64 -d -out ciphertext.bin")
     os.system(f"echo -n \"{tag}\" | openssl base64 -d -out tag.bin")
 
     """Use files alice_pkey.pem and ephpubkey.pem to recover the common secret with openssl pkeyutl
     -derive."""
-    os.system(f"openssl pkeyutl -inkey {dest_name}_pkey.pem -peerkey ephpub.pem -derive -out common_secret.bin")
+    os.system(f"openssl pkeyutl -inkey {dest_name}_pkey.pem -peerkey ephpubkey.pem -derive -out common_secret.bin")
 
     os.system("cat common_secret.bin | openssl dgst -sha256 -binary | head -c 16 > k1.bin")
     os.system("cat common_secret.bin | openssl dgst -sha256 -binary | tail -c 16 > k2.bin")
