@@ -52,10 +52,6 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
         elif flag == "tag":
             tag+=i
 
-    print(public_key)
-    print(iv)
-    print(ciphertext)
-    print(tag)
     os.system(f"echo -n \"{public_key}\" > ephpubkey.pem")
     os.system(f"echo -n \"{iv}\" | openssl enc -base64 -d -A -out iv.bin")
     os.system(f"echo -n \"{ciphertext}\" | openssl enc -base64 -d -A -out ciphertext.bin")
@@ -68,18 +64,18 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
     os.system("cat common_secret.bin | openssl dgst -sha256 -binary | head -c 16 > k1.bin")
     os.system("cat common_secret.bin | openssl dgst -sha256 -binary | tail -c 16 > k2.bin")
 
-    os.system("cat iv.bin ciphertext.bin | openssl dgst -sha256 -mac hmac -macopt hexkey:`cat k2.bin | xxd -p` -binary > deciphered_tag.bin")
+    os.system("cat iv.bin ciphertext.bin | openssl dgst -sha256 -mac hmac -macopt hexkey:`cat k2.bin | xxd -p` -binary > decrypted_tag.bin")
 
     """ If the result is different from the file tag.bin, then abort the decryption operation and
     report the error."""
-    if os.popen("cat tag.bin | openssl base64").read() == os.popen("cat deciphered_tag.bin | openssl base64").read():
-        os.system("openssl enc -aes-128-cbc -d -in ciphertext.bin -iv `cat iv.bin | xxd -p` -K `cat k1.bin | xxd -p` -out deciphered.txt")
+    if os.popen("cat tag.bin | openssl base64").read() == os.popen("cat decrypted_tag.bin | openssl base64").read():
+        os.system("openssl enc -aes-128-cbc -d -in ciphertext.bin -iv `cat iv.bin | xxd -p` -K `cat k1.bin | xxd -p` -out decrypted_text.txt")
     else:
         print("Tags do not match, use the correct destination name")
         sys.exit(1)
 
-    """# Cleaning the aux files
-    os.system("rm iv.bin ciphertext.bin ephpub.pem tag.bin k1.bin k2.bin common.bin deciphered_tag.bin")"""
+    # remove temp files
+    os.system("rm iv.bin ciphertext.bin ephpubkey.pem tag.bin k1.bin k2.bin common_secret.bin decrypted_tag.bin")
 
 
 def encryption(name="alice", msg="This is a test"):
