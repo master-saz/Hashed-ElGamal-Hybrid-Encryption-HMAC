@@ -148,6 +148,6 @@ def param_key_gen(name="alice"):
 
 
 if __name__ == '__main__':
-    #param_key_gen()
-    #encryption()
+    param_key_gen()
+    encryption()
     decryption()
