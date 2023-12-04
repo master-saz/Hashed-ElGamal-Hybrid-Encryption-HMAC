@@ -75,8 +75,8 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
     else:
         print("Tags do not match, use the correct destination name")
 
-    # Cleaning the aux files
-    os.system("rm iv.bin ciphertext.bin ephpub.pem tag.bin k1.bin k2.bin common.bin deciphered_tag.bin")
+    """# Cleaning the aux files
+    os.system("rm iv.bin ciphertext.bin ephpub.pem tag.bin k1.bin k2.bin common.bin deciphered_tag.bin")"""
 
 
 def encryption(name="alice", msg="This is a test"):
