@@ -57,9 +57,9 @@ def decryption(cipher_file="ciphertext.pem", dest_name="alice"):
     print(ciphertext)
     print(tag)
     os.system(f"echo -n \"{public_key}\" > ephpubkey.pem")
-    os.system(f"echo -n \"{iv}\" | openssl base64 -d -out iv.bin")
-    os.system(f"echo -n \"{ciphertext}\" | openssl base64 -d -out ciphertext.bin")
-    os.system(f"echo -n \"{tag}\" | openssl base64 -d -out tag.bin")
+    os.system(f"echo -n \"{iv}\" | openssl enc -base64 -d -A -out iv.bin")
+    os.system(f"echo -n \"{ciphertext}\" | openssl enc -base64 -d -A -out ciphertext.bin")
+    os.system(f"echo -n \"{tag}\" | openssl enc -base64 -d -A -out tag.bin")
 
     """Use files alice_pkey.pem and ephpubkey.pem to recover the common secret with openssl pkeyutl
     -derive."""
